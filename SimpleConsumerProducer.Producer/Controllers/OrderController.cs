@@ -13,7 +13,7 @@ public class OrderController: ControllerBase
 
     public OrderController(IPublishEndpoint endpoint, ILogger<OrderController> logger)
     {
-        _endpoint = endpoint;
+        _endpoint = endpoint;   
         _logger = logger;
     }
 

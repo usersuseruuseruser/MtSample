@@ -10,7 +10,14 @@ builder.Services.AddMassTransit(configurator =>
 {
     configurator.SetKebabCaseEndpointNameFormatter();
     
-    configurator.AddConsumer<OrderConsumer>();
+    configurator.AddConsumer<OrderConsumer>(e =>
+    {
+        e.Options<BatchOptions>(options =>
+        {
+            options.MessageLimit = 3;
+            options.TimeLimit = TimeSpan.FromSeconds(10);
+        });
+    });
     
     configurator.UsingRabbitMq((context, factoryConfigurator) =>
     {
