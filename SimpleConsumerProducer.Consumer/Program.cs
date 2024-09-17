@@ -1,5 +1,6 @@
 using MassTransit;
 using SimpleConsumerProducer.Consumer.Consumers;
+using SimpleConsumerProducer.Consumer.Definitions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,14 +11,7 @@ builder.Services.AddMassTransit(configurator =>
 {
     configurator.SetKebabCaseEndpointNameFormatter();
     
-    configurator.AddConsumer<OrderConsumer>(e =>
-    {
-        e.Options<BatchOptions>(options =>
-        {
-            options.MessageLimit = 3;
-            options.TimeLimit = TimeSpan.FromSeconds(10);
-        });
-    });
+    configurator.AddConsumer<OrderConsumer>(typeof(OrderConsumerDefinition));
     
     configurator.UsingRabbitMq((context, factoryConfigurator) =>
     {

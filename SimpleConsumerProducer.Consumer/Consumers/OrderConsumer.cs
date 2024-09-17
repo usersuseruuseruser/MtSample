@@ -21,7 +21,7 @@ public class OrderConsumer: IConsumer<Batch<CreateOrder>>
             // dbcontext.orders.add(new CreateOrder{data.message.company, data.message.trees})
         }
 
-        //await dbcontext.savechangesAsync();
+        //await dbcontext.saveChangesAsync();
         await Task.Delay(1000);
         _logger.LogInformation("Finished processing batch orders");
     }
