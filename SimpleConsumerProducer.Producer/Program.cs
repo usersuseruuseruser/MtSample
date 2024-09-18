@@ -12,8 +12,13 @@ builder.Services.AddMassTransit(configurator =>
     
     configurator.UsingRabbitMq((context, factoryConfigurator) =>
     {
-        
-        factoryConfigurator.Host("rabbitmq://localhost");
+        factoryConfigurator.Host("rabbitmq", "/", h =>
+        {
+            h.Username("admin");
+            h.Password("admin");
+            
+            h.Heartbeat(TimeSpan.FromSeconds(5));
+        });
         factoryConfigurator.ConfigureEndpoints(context);
     });
 });

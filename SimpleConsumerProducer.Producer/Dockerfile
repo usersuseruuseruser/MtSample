@@ -5,19 +5,20 @@ EXPOSE 8080
 EXPOSE 8081
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
+ARG BUILD_CONFIGURATION=Development
 WORKDIR /src
-COPY ["MassTransit/MassTransit.csproj", "MassTransit/"]
-RUN dotnet restore "MassTransit/MassTransit.csproj"
+COPY ["SimpleConsumerProducer.Producer/SimpleConsumerProducer.Producer.csproj", "SimpleConsumerProducer.Producer/"]
+COPY ["Contracts/Contracts.csproj", "Contracts/"]
+RUN dotnet restore "SimpleConsumerProducer.Producer/SimpleConsumerProducer.Producer.csproj"
 COPY . .
-WORKDIR "/src/MassTransit"
-RUN dotnet build "MassTransit.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/SimpleConsumerProducer.Producer"
+RUN dotnet build "SimpleConsumerProducer.Producer.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "MassTransit.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+ARG BUILD_CONFIGURATION=Development
+RUN dotnet publish "SimpleConsumerProducer.Producer.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "MassTransit.dll"]
+ENTRYPOINT ["dotnet", "SimpleConsumerProducer.Producer.dll"]

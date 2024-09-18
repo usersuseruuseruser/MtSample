@@ -6,7 +6,7 @@ namespace SimpleConsumerProducer.Consumer.Consumers;
 public class OrderConsumer: IConsumer<Batch<CreateOrder>>
 {
     private ILogger<OrderConsumer> _logger;
-
+    
     public OrderConsumer(ILogger<OrderConsumer> logger)
     {
         _logger = logger;
@@ -23,6 +23,14 @@ public class OrderConsumer: IConsumer<Batch<CreateOrder>>
 
         //await dbcontext.saveChangesAsync();
         await Task.Delay(1000);
+
+        if (new Random().Next(0, 2) == 0)
+        {
+            _logger.LogInformation($"Random exception has been thrown! current time: {DateTime.Now}");
+            // message redelivery on the consumer level test
+            throw new Exception("Random exception");
+        }
+        
         _logger.LogInformation("Finished processing batch orders");
     }
 }
