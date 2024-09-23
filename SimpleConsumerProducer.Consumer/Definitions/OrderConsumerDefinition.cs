@@ -25,6 +25,7 @@ public class OrderConsumerDefinition: ConsumerDefinition<OrderConsumer>
         });*/
         // we could just use redelivery instead of retry
         
+        
         consumerConfigurator.Options<BatchOptions>(options =>
         {
             options.MessageLimit = 3;

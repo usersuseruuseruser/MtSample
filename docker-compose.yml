@@ -1,4 +1,5 @@
 ﻿services: 
+  
   consumer:
     build: 
         context: .
@@ -8,6 +9,9 @@
     depends_on: 
       rabbitmq:
         condition: service_healthy
+      PgConsumer:
+        condition: service_healthy
+        
   producer:
     build: 
         context: .
@@ -18,6 +22,9 @@
     depends_on:
         rabbitmq:
             condition: service_healthy
+        PgProducer:
+            condition: service_healthy
+            
   rabbitmq:
     image: heidiks/rabbitmq-delayed-message-exchange:latest
     environment:
@@ -26,8 +33,47 @@
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
     healthcheck:
       test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_port_connectivity"]
       interval: 5s
       timeout: 5s
       retries: 3
+      
+  PgProducer:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: orders
+    volumes:
+      - pgproducer:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+  
+  PgConsumer:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: emails
+    volumes:
+       - pgconsumer:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      
+volumes: 
+    rabbitmq:
+    pgproducer:
+    pgconsumer:
