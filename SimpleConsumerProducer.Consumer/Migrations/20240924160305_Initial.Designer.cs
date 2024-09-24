@@ -5,14 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using SimpleConsumerProducer.Producer.Database;
+using SimpleConsumerProducer.Consumer.DbContext;
 
 #nullable disable
 
-namespace SimpleConsumerProducer.Producer.Migrations
+namespace SimpleConsumerProducer.Consumer.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240923174236_Initial")]
+    [Migration("20240924160305_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -195,22 +195,27 @@ namespace SimpleConsumerProducer.Producer.Migrations
                     b.ToTable("OutboxState");
                 });
 
-            modelBuilder.Entity("SimpleConsumerProducer.Producer.Models.OrderDetails", b =>
+            modelBuilder.Entity("SimpleConsumerProducer.Consumer.Models.OrderSentEmail", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Address")
+                    b.Property<string>("Body")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Trees")
-                        .HasColumnType("integer");
+                    b.Property<string>("EmailAdress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Emails");
                 });
 #pragma warning restore 612, 618
         }

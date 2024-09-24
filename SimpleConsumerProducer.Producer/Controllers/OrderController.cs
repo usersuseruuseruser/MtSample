@@ -45,6 +45,7 @@ public class OrderController: ControllerBase
 
         _logger.LogInformation("Publishing an order creation message for {Trees} trees.", order.Trees);
         await _endpoint.Publish(order);
+        await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Order creation message published.");
         return Created();
     }
@@ -149,6 +150,7 @@ public class OrderController: ControllerBase
     {
         _logger.LogInformation("Publishing a casual order creation message for {Order}", order.Order);
         await _endpoint.Publish(order);
+        await _dbContext.SaveChangesAsync();
         _logger.LogInformation("Casual order creation message published.");
         return Created();
     }

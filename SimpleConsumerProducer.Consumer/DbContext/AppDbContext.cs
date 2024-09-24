@@ -20,7 +20,7 @@ public class AppDbContext: Microsoft.EntityFrameworkCore.DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddTransactionalOutboxEntities();
         base.OnModelCreating(modelBuilder);
     }
 }
