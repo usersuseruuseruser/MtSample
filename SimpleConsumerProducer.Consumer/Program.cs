@@ -5,6 +5,7 @@ using SimpleConsumerProducer.Consumer.Consumers;
 using SimpleConsumerProducer.Consumer.DbContext;
 using SimpleConsumerProducer.Consumer.Definitions;
 using MassTransit.EntityFrameworkCoreIntegration;
+using SimpleConsumerProducer.Consumer.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,14 @@ builder.Services.AddMassTransit(configurator =>
     configurator.AddConsumer<OrderConsumer>(typeof(OrderConsumerDefinition));
     configurator.AddConsumer<FaultOrderConsumer>();
     configurator.AddConsumer<OrderStatusConsumer>();
+    configurator.AddConsumer<CasualOrderConsumer1>();
+    
+    configurator.AddMediator(c =>
+    {
+        c.AddConsumer<CasualOrderConsumer1>();
+        c.AddConsumer<CasualOrderHelper1>();
+        c.AddConsumer<CasualOrderHelper2>();
+    });
     
     configurator.UsingRabbitMq((context, factoryConfigurator) =>
     {

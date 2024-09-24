@@ -1,6 +1,7 @@
 ﻿using Contracts;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
+using SimpleConsumerProducer.Consumer.Models;
 using SimpleConsumerProducer.Producer.Database;
 using SimpleConsumerProducer.Producer.Dto;
 using SimpleConsumerProducer.Producer.Models;
@@ -108,28 +109,47 @@ public class OrderController: ControllerBase
     public async Task<IActionResult> CheckOrderStatus(int id)
     {
         _logger.LogInformation("Checking order status");
-        var resp = await _requestClient.GetResponse<OrderStatus, Fault<CheckOrderStatus>>(
-            new CheckOrderStatus() { OrderId = id },
-            x => x.UseExecute(c => 
-                c.Headers.Set("x-custom-header-test", "some-value")));
-
-        
-        if (resp.Is(out Response<Fault<CheckOrderStatus>>? faultResp))
+        // Apparently, if exception is thrown from the consumer, it cant be used in a Fault<> response
+        // We should use a try catch block in order to handle it. like this
+        try
         {
-            _logger.LogError("Error checking order status: {Error}", faultResp.Message.Message);
+            var resp = await _requestClient.GetResponse<OrderStatus, OrderNotFound>(
+                new CheckOrderStatus() { OrderId = id },
+                x => x.UseExecute(c =>
+                    c.Headers.Set("x-custom-header-test", "some-value")));
+            if (resp.Is<OrderNotFound>(out Response<OrderNotFound>? notFoundResponce))
+            {
+                return NotFound(new ErrorResponse()
+                {
+                    StatusCode = 404,
+                    Message = $"Order with id {notFoundResponce.Message.OrderId} not found"
+                });
+            }
+            
+            if (resp.Is(out Response<OrderStatus>? properResponse))
+            {
+                return Ok(properResponse.Message.Status);
+            }
+        
+            _logger.LogError("Unknown response type:" + resp.GetType().Name);
+            return StatusCode(500, "Something went wrong, try again later");
+        }
+        catch (RequestFaultException ex)
+        {
+            _logger.LogError("Error checking order status: {Error}", ex.Message);
             return BadRequest(new ErrorResponse()
             {
                 StatusCode = 500,
-                Message = faultResp.Message.Exceptions[0].Message
+                Message = "Error checking order status"
             });
         }
-        
-        if (resp.Is(out Response<OrderStatus>? properResponse))
-        {
-            return Ok(properResponse.Message.Status);
-        }
-        
-        _logger.LogError("Unknown response type:" + resp.GetType().Name);
-        return StatusCode(500, "Something went wrong, try again later");
+    }
+    [HttpPost("/order-casual")]
+    public async Task<IActionResult> CreateCasualOrder(CasualOrder order)
+    {
+        _logger.LogInformation("Publishing a casual order creation message for {Order}", order.Order);
+        await _endpoint.Publish(order);
+        _logger.LogInformation("Casual order creation message published.");
+        return Created();
     }
 }
