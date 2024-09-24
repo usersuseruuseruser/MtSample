@@ -1,3 +1,4 @@
+using Contracts;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using SimpleConsumerProducer.Consumer.Consumers;
@@ -36,7 +37,8 @@ builder.Services.AddMassTransit(configurator =>
 
     configurator.AddConsumer<OrderWithEmailConsumer>(typeof(OrderWithEmailDefinition));
     configurator.AddConsumer<OrderConsumer>(typeof(OrderConsumerDefinition));
-
+    configurator.AddConsumer<FaultOrderConsumer>();
+    
     configurator.UsingRabbitMq((context, factoryConfigurator) =>
     {
         factoryConfigurator.ReceiveEndpoint("orders-queue", e =>

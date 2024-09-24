@@ -87,4 +87,12 @@ public class OrderController: ControllerBase
         _logger.LogInformation("Order creation message sent.");
         return Created();
     }
+    [HttpGet("/fault-generator")]
+    public async Task<IActionResult> GenerateFault()
+    {
+        _logger.LogInformation("Generating a fault");
+        await _endpoint.Publish(new GenerateFaultOrder(){Trees = 1, Address = "test"});
+        _logger.LogInformation("Fault generated");
+        return Ok();
+    }
 }
