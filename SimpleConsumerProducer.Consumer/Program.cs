@@ -34,7 +34,7 @@ builder.Services.AddMassTransit(configurator =>
         c.UsePostgres();
     });
 
-    configurator.AddConsumer<OrderWithEmailConsumer>();
+    configurator.AddConsumer<OrderWithEmailConsumer>(typeof(OrderWithEmailDefinition));
     configurator.AddConsumer<OrderConsumer>(typeof(OrderConsumerDefinition));
 
     configurator.UsingRabbitMq((context, factoryConfigurator) =>

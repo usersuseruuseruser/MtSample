@@ -21,8 +21,6 @@ public class AppDbContext: Microsoft.EntityFrameworkCore.DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
-        modelBuilder.AddOutboxStateEntity();
         base.OnModelCreating(modelBuilder);
     }
 }
