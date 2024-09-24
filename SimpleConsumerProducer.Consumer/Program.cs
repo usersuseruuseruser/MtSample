@@ -47,6 +47,7 @@ builder.Services.AddMassTransit(configurator =>
         c.AddConsumer<CasualOrderConsumer1>();
         c.AddConsumer<CasualOrderHelper1>();
         c.AddConsumer<CasualOrderHelper2>();
+        c.AddConsumer<CasualOrderResponcer>();
     });
     
     configurator.UsingRabbitMq((context, factoryConfigurator) =>

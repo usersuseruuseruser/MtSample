@@ -25,6 +25,11 @@ public class CasualOrderConsumer1: IConsumer<CasualOrder>
             Id = context.Message.Id,
             OrderContinuation = $"Continuation of order {context.Message.Order}"
         };
-        await _mediator.Publish(casualOrderContinuation);
+        // await _mediator.Publish(casualOrderContinuation);
+
+        var client = _mediator.CreateRequestClient<CasualOrderContinuation>();
+        var resp = await client.GetResponse<CasualOrderResponce>(casualOrderContinuation);
+        
+        _logger.LogInformation($"Response from CasualOrderResponce: {resp.Message.OrderResponce}");
     }
 }

@@ -14,6 +14,7 @@ public class CasualOrderHelper1: IConsumer<CasualOrderContinuation>
 
     public async Task Consume(ConsumeContext<CasualOrderContinuation> context)
     {
+        await context.RespondAsync(new CasualOrderResponce() { OrderResponce = "test" });
         _logger.LogInformation($"Casually consuming order with id {context.Message.Id} and text {context.Message.OrderContinuation}");
     }
 }
