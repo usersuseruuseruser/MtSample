@@ -13,18 +13,23 @@ public class OrderController: ControllerBase
     private IPublishEndpoint _endpoint;
     private ILogger<OrderController> _logger;
     private ISendEndpointProvider _sendEndpointProvider;
+    private IRequestClient<CheckOrderStatus> _requestClient;
     private AppDbContext _dbContext;
 
-    public OrderController(IPublishEndpoint endpoint, ILogger<OrderController> logger, ISendEndpointProvider sendEndpointProvider, AppDbContext dbContext)
+
+    public OrderController(IPublishEndpoint endpoint, ILogger<OrderController> logger,
+        ISendEndpointProvider sendEndpointProvider, AppDbContext dbContext,
+        IRequestClient<CheckOrderStatus> requestClient)
     {
-        _endpoint = endpoint;   
+        _endpoint = endpoint;
         _logger = logger;
         _sendEndpointProvider = sendEndpointProvider;
         _dbContext = dbContext;
+        _requestClient = requestClient;
     }
 
     [HttpPost("/order-publish")]
-    [ProducesResponseType(typeof(OrderCreated),StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(OrderCreated), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateOrderPublish(CreateOrder order)
     {
         // validate order somehow, simple one:
@@ -36,14 +41,15 @@ public class OrderController: ControllerBase
                 Message = "Введено некорректное число деревьев"
             });
         }
+
         _logger.LogInformation("Publishing an order creation message for {Trees} trees.", order.Trees);
         await _endpoint.Publish(order);
         _logger.LogInformation("Order creation message published.");
         return Created();
     }
-    
+
     [HttpPost("/order-send")]
-    [ProducesResponseType(typeof(OrderCreated),StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(OrderCreated), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateOrderSend(CreateOrder order)
     {
         // validate order somehow, simple one:
@@ -55,10 +61,11 @@ public class OrderController: ControllerBase
                 Message = "Введено некорректное число деревьев"
             });
         }
+
         _logger.LogInformation("Sending an order creation message for {Trees} trees.", order.Trees);
         // actually the same as publish, but we could send it to the queue directly
         var endpoint = await _sendEndpointProvider.GetSendEndpoint(new Uri("exchange:Contracts:CreateOrder"));
-        await endpoint.Send(order, context => context.Headers.Set("x-custom-header-test","some-value"));
+        await endpoint.Send(order, context => context.Headers.Set("x-custom-header-test", "some-value"));
         _logger.LogInformation("Order creation message sent.");
         return Created();
     }
@@ -81,18 +88,48 @@ public class OrderController: ControllerBase
             Email = data.Email,
             OrderDetails = $"You have ordered {data.Trees} trees to {data.Address}"
         });
-        
+
         await _dbContext.SaveChangesAsync();
-        
+
         _logger.LogInformation("Order creation message sent.");
         return Created();
     }
+
     [HttpGet("/fault-generator")]
     public async Task<IActionResult> GenerateFault()
     {
         _logger.LogInformation("Generating a fault");
-        await _endpoint.Publish(new GenerateFaultOrder(){Trees = 1, Address = "test"});
+        await _endpoint.Publish(new GenerateFaultOrder() { Trees = 1, Address = "test" });
         _logger.LogInformation("Fault generated");
         return Ok();
+    }
+
+    [HttpGet("/check-order-status")]
+    public async Task<IActionResult> CheckOrderStatus(int id)
+    {
+        _logger.LogInformation("Checking order status");
+        var resp = await _requestClient.GetResponse<OrderStatus, Fault<CheckOrderStatus>>(
+            new CheckOrderStatus() { OrderId = id },
+            x => x.UseExecute(c => 
+                c.Headers.Set("x-custom-header-test", "some-value")));
+
+        
+        if (resp.Is(out Response<Fault<CheckOrderStatus>>? faultResp))
+        {
+            _logger.LogError("Error checking order status: {Error}", faultResp.Message.Message);
+            return BadRequest(new ErrorResponse()
+            {
+                StatusCode = 500,
+                Message = faultResp.Message.Exceptions[0].Message
+            });
+        }
+        
+        if (resp.Is(out Response<OrderStatus>? properResponse))
+        {
+            return Ok(properResponse.Message.Status);
+        }
+        
+        _logger.LogError("Unknown response type:" + resp.GetType().Name);
+        return StatusCode(500, "Something went wrong, try again later");
     }
 }

@@ -38,6 +38,7 @@ builder.Services.AddMassTransit(configurator =>
     configurator.AddConsumer<OrderWithEmailConsumer>(typeof(OrderWithEmailDefinition));
     configurator.AddConsumer<OrderConsumer>(typeof(OrderConsumerDefinition));
     configurator.AddConsumer<FaultOrderConsumer>();
+    configurator.AddConsumer<OrderStatusConsumer>();
     
     configurator.UsingRabbitMq((context, factoryConfigurator) =>
     {
