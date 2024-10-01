@@ -39,7 +39,7 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
                     saga.WarehouseId = message.WarehouseId;
                     saga.BankPaymentCode = message.BankPaymentCode;
                 })
-                .Send(context => new CreateOrder
+                .Publish(context => new CreateOrder
                 {
                     OrderId = context.Saga.CorrelationId,
                     ItemId = context.Saga.ItemId,

@@ -32,7 +32,7 @@ builder.Services.AddMassTransit(configurator =>
             h.Username("admin");
             h.Password("admin");
             
-            h.Heartbeat(TimeSpan.FromSeconds(5));
+            h.Heartbeat(TimeSpan.FromSeconds(300));
         });
         factoryConfigurator.ConfigureEndpoints(context);
     });

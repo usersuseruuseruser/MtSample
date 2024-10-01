@@ -19,9 +19,8 @@ public class OrderWithEmailConsumer
 
     public async Task Consume(ConsumeContext<SendEmailWithOrderDetails> context)
     {
-        // send email to the customer
         _logger.LogInformation("Sending email to {Email} with order details", context.Message.Email);
-        await Task.Delay(1000);
+        
         _dbContext.Emails.Add(new OrderSentEmail()
         {
             EmailAdress = context.Message.Email,
@@ -29,7 +28,7 @@ public class OrderWithEmailConsumer
             Body = context.Message.OrderDetails
         });
         await _dbContext.SaveChangesAsync();
-        
+
         _logger.LogInformation("Email sent to {Email}", context.Message.Email);
     }
 }

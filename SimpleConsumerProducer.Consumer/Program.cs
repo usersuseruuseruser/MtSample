@@ -9,6 +9,7 @@ using SimpleConsumerProducer.Consumer.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(o =>
@@ -69,7 +70,7 @@ builder.Services.AddMassTransit(configurator =>
             h.Username("admin");
             h.Password("admin");
             
-            h.Heartbeat(TimeSpan.FromSeconds(5));
+            h.Heartbeat(TimeSpan.FromSeconds(500));
         });
         factoryConfigurator.ConfigureEndpoints(context);
     });
