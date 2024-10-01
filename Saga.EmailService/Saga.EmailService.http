@@ -1,0 +1,6 @@
+@Saga.EmailService_HostAddress = http://localhost:5219
+
+GET {{Saga.EmailService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

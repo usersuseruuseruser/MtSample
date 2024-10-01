@@ -28,7 +28,6 @@ public class OrderWithEmailConsumer
             Subject = "Order details",
             Body = context.Message.OrderDetails
         });
-
         await _dbContext.SaveChangesAsync();
         
         _logger.LogInformation("Email sent to {Email}", context.Message.Email);
