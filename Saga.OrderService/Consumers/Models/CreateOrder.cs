@@ -1,4 +1,5 @@
 using Saga.Contracts;
+using Saga.Contracts.OrderRelated;
 
 namespace Saga.OrderService.Consumers.Models;
 

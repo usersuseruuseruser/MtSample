@@ -1,4 +1,4 @@
-namespace Saga.Contracts;
+namespace Saga.Contracts.OrderRelated;
 
 public interface IOrderCreationCompensated
 {

@@ -37,7 +37,7 @@ public class OrderController: ControllerBase
             // надо привязать сагу к id заказа. поэтому создаем заранее. иначе пришлось бы вместе со всей этой инфой
             // идти в консюмера и получать id там(избыток информации для консюмера). можно было решить медиатором,
             // но это уже другая история
-            OrderId = new Guid(),
+            OrderId = Guid.NewGuid(),
             Address = orderDto.Address,
             BankPaymentCode = orderDto.BankPaymentCode,
             ClientId = orderDto.ClientId,

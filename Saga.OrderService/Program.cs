@@ -1,4 +1,5 @@
 using System.Data;
+using System.Reflection;
 using System.Security.Cryptography.Xml;
 using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;
@@ -14,21 +15,34 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(optionsAction =>
 {
-    optionsAction.UseNpgsql("Host=Saga.OrderService;Database=orders;Username=postgres;Password=postgres;Port=5434");
+    optionsAction.UseNpgsql("Host=Saga.OrderSaga;Database=orders;Username=postgres;Password=postgres",
+        o =>
+        {
+            o.MigrationsHistoryTable("__EFOrdersMigrationsHistory", "Orders");
+            o.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName);
+        });
+});
+builder.Services.AddDbContext<OrderSagaDbContext>(builder =>
+{
+    builder.UseNpgsql(
+        "Host=Saga.OrderSaga;Database=orders;Username=postgres;Password=postgres",
+        o =>
+        {
+            o.MigrationsHistoryTable("__EFSagasMigrationsHistory", "Sagas");
+            o.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName);
+        });
 });
 builder.Services.AddMassTransit(configurator =>
 {
     configurator.SetKebabCaseEndpointNameFormatter();
+    configurator.AddConsumers(Assembly.GetExecutingAssembly());
+    
     configurator.AddSagaStateMachine<OrderStateMachine, OrderState>()
         .EntityFrameworkRepository(r =>
         {
             r.ConcurrencyMode = ConcurrencyMode.Optimistic;
             r.IsolationLevel = IsolationLevel.RepeatableRead;
-            r.AddDbContext<DbContext, SagaDbContext>((provider, builder) =>
-            {
-                builder.UseNpgsql(
-                    "Host=Saga.OrderService;Database=orders;Username=postgres;Password=postgres;Port=5434");
-            });
+            r.ExistingDbContext<OrderSagaDbContext>();
         });
     
     configurator.UsingRabbitMq((context, factoryConfigurator) =>
@@ -57,10 +71,9 @@ await using var scope = app.Services.CreateAsyncScope();
 
 // вынести в hosted service
 var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-var sagaDbContext = scope.ServiceProvider.GetRequiredService<SagaDbContext>();
+var sagaDbContext = scope.ServiceProvider.GetRequiredService<OrderSagaDbContext>();
 await appDbContext.Database.MigrateAsync();
 await sagaDbContext.Database.MigrateAsync();
 
-app.UseHttpsRedirection();
-
+app.MapControllers();
 app.Run();

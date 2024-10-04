@@ -8,8 +8,9 @@ namespace Saga.OrderService.Database;
 public class OrderSagaDbContext: SagaDbContext
 {
     public DbSet<OrderState> OrderStates { get; set; } = null!;
-    
-    public OrderSagaDbContext(DbContextOptions options) : base(options)
+
+
+    public OrderSagaDbContext(DbContextOptions<OrderSagaDbContext> options) : base(options)
     {
     }
 
@@ -19,5 +20,11 @@ public class OrderSagaDbContext: SagaDbContext
         {
             yield return new OrderStateMap();
         }
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasDefaultSchema("Sagas");
+        base.OnModelCreating(modelBuilder);
     }
 }

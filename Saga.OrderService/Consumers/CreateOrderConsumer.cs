@@ -1,5 +1,6 @@
 using MassTransit;
 using Saga.Contracts;
+using Saga.Contracts.OrderRelated;
 using Saga.OrderService.Consumers.Models;
 using Saga.OrderService.Database;
 using Saga.OrderService.Enums;
@@ -21,6 +22,14 @@ public class CreateOrderConsumer: IConsumer<ICreateOrder>
     public async Task Consume(ConsumeContext<ICreateOrder> context)
     {
         _logger.LogInformation("Creating a new order for item {ItemId} and client {ClientId}.", context.Message.ItemId, context.Message.ClientId);
+
+        // типо чтото делаем
+        await Task.Delay(Random.Shared.Next(7899, 27599));
+        
+        if (Random.Shared.Next(0,2) != 0)
+        {
+            throw new Exception("Random exception during order creation");
+        }
         
         var order = new Order
         {
@@ -35,8 +44,7 @@ public class CreateOrderConsumer: IConsumer<ICreateOrder>
         await _dbContext.SaveChangesAsync();
         
         _logger.LogInformation("Order {OrderId} saved into database.", order.Id);
-        // типо обработка заказа. в демо целях чтобы видеть разное состояние саги
-        await Task.Delay(Random.Shared.Next(7899, 27599));
+       
         
         await context.Publish<IOrderCreated>(new OrderCreated()
         {

@@ -37,4 +37,9 @@
       <ProjectReference Include="..\Saga.Contracts\Saga.Contracts.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Migrations\OrdersSaga\" />
+      <Folder Include="Migrations\Orders\" />
+    </ItemGroup>
+
 </Project>

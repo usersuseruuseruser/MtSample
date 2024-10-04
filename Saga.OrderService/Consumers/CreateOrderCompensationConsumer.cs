@@ -1,24 +1,25 @@
 using MassTransit;
 using Saga.Contracts;
+using Saga.Contracts.OrderRelated;
 using Saga.OrderService.Database;
 using Saga.OrderService.Models;
 
 namespace Saga.OrderService.Consumers;
 
-public class CreateOrderFaultConsumer: IConsumer<Fault<ICreateOrder>>
+public class CreateOrderCompensationConsumer: IConsumer<ICompensateOrderCreation>
 {
     private readonly AppDbContext _dbContext;
     private readonly ILogger<CreateOrderConsumer> _logger;
 
-    public CreateOrderFaultConsumer(AppDbContext dbContext, ILogger<CreateOrderConsumer> logger)
+    public CreateOrderCompensationConsumer(AppDbContext dbContext, ILogger<CreateOrderConsumer> logger)
     {
         _dbContext = dbContext;
         _logger = logger;
     }
 
-    public async Task Consume(ConsumeContext<Fault<ICreateOrder>> context)
+    public async Task Consume(ConsumeContext<ICompensateOrderCreation> context)
     {
-        var order = await _dbContext.FindAsync<Order>(context.Message.Message.OrderId);
+        var order = await _dbContext.FindAsync<Order>(context.Message.OrderId);
         
         // TODO: добавить outbox
         if (order != null)
@@ -28,9 +29,9 @@ public class CreateOrderFaultConsumer: IConsumer<Fault<ICreateOrder>>
             _logger.LogInformation("Order {OrderId} removed from database.", order.Id);
         }
         
-        await context.RespondAsync<IOrderCreationCompensated>(new
+        await context.Publish<IOrderCreationCompensated>(new
         {
-            OrderId = context.Message.Message.OrderId,
+            OrderId = context.Message.OrderId,
             CompensatedAt = DateTime.UtcNow
         });
     }
