@@ -16,15 +16,6 @@ builder.Services.AddMassTransit(configurator =>
 {
     configurator.SetKebabCaseEndpointNameFormatter();
     
-    configurator.AddEntityFrameworkOutbox<AppDbContext>(o =>
-    {
-        o.QueryTimeout = TimeSpan.FromSeconds(30);
-        o.QueryDelay = TimeSpan.FromSeconds(3);
-        o.DuplicateDetectionWindow = TimeSpan.FromMinutes(5);
-        o.DisableInboxCleanupService();
-        o.UsePostgres().UseBusOutbox();
-    });
-    
     configurator.UsingRabbitMq((context, factoryConfigurator) =>
     {
         factoryConfigurator.Host("rabbitmq", "/", h =>

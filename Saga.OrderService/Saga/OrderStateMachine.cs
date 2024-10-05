@@ -47,6 +47,7 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
                     saga.WarehouseId = message.WarehouseId;
                     saga.BankPaymentCode = message.BankPaymentCode;
                 })
+                .TransitionTo(SagaCreated)
                 .Publish(context => new CreateOrder
                 {
                     OrderId = context.Saga.CorrelationId,
@@ -58,8 +59,8 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
                 {
                     Logger.LogInformation("Order Saga {OrderId} created.", context.Saga.OrderId);
                 })
-                .TransitionTo(SagaCreated)
-            );
+            
+        );
         During(SagaCreated,
             When(OrderCreatedEvent)
                 .Then(context =>
@@ -70,9 +71,9 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
                 {
                     Logger.LogInformation("Order {OrderId} created.", context.Saga.OrderId);
                 })
-                .TransitionTo(OrderCreated)
-            
-                ,When(OrderCreationFaultEvent)
+                .TransitionTo(OrderCreated),
+                
+                When(OrderCreationFaultEvent)
                 .Publish(context => new CompensateOrderCreation()
                 {
                     OrderId = context.Saga.OrderId

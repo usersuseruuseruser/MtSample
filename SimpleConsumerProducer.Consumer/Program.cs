@@ -30,8 +30,8 @@ builder.Services.AddMassTransit(configurator =>
     
     configurator.AddEntityFrameworkOutbox<AppDbContext>(c =>
     {
-        c.QueryTimeout = TimeSpan.FromSeconds(10);
-        c.QueryDelay = TimeSpan.FromSeconds(5);
+        c.QueryTimeout = TimeSpan.FromSeconds(30);
+        c.QueryDelay = TimeSpan.FromSeconds(10);
         c.DuplicateDetectionWindow = TimeSpan.FromMinutes(5);
         c.DisableInboxCleanupService();
         c.UsePostgres();

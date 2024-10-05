@@ -1,5 +1,4 @@
 using MassTransit;
-using Saga.Contracts;
 using Saga.Contracts.OrderRelated;
 using Saga.OrderService.Database;
 using Saga.OrderService.Models;
@@ -9,9 +8,9 @@ namespace Saga.OrderService.Consumers;
 public class CreateOrderCompensationConsumer: IConsumer<ICompensateOrderCreation>
 {
     private readonly AppDbContext _dbContext;
-    private readonly ILogger<CreateOrderConsumer> _logger;
+    private readonly ILogger<CreateOrderCompensationConsumer> _logger;
 
-    public CreateOrderCompensationConsumer(AppDbContext dbContext, ILogger<CreateOrderConsumer> logger)
+    public CreateOrderCompensationConsumer(AppDbContext dbContext, ILogger<CreateOrderCompensationConsumer> logger)
     {
         _dbContext = dbContext;
         _logger = logger;
@@ -19,9 +18,9 @@ public class CreateOrderCompensationConsumer: IConsumer<ICompensateOrderCreation
 
     public async Task Consume(ConsumeContext<ICompensateOrderCreation> context)
     {
+        _logger.LogInformation("Compensating order creation for order {OrderId}.", context.Message.OrderId);
         var order = await _dbContext.FindAsync<Order>(context.Message.OrderId);
         
-        // TODO: добавить outbox
         if (order != null)
         {
             _dbContext.Remove(order);
@@ -31,7 +30,7 @@ public class CreateOrderCompensationConsumer: IConsumer<ICompensateOrderCreation
         
         await context.Publish<IOrderCreationCompensated>(new
         {
-            OrderId = context.Message.OrderId,
+            context.Message.OrderId,
             CompensatedAt = DateTime.UtcNow
         });
     }

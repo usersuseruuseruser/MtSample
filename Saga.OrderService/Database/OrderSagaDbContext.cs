@@ -1,3 +1,4 @@
+using MassTransit;
 using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 using Saga.OrderService.Database.Mapping;
@@ -24,7 +25,8 @@ public class OrderSagaDbContext: SagaDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("Sagas");
         base.OnModelCreating(modelBuilder);
+        modelBuilder.HasDefaultSchema("Sagas");
+        modelBuilder.AddTransactionalOutboxEntities();
     }
 }

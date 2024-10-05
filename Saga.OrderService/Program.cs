@@ -36,13 +36,22 @@ builder.Services.AddMassTransit(configurator =>
 {
     configurator.SetKebabCaseEndpointNameFormatter();
     configurator.AddConsumers(Assembly.GetExecutingAssembly());
+    configurator.AddEntityFrameworkOutbox<OrderSagaDbContext>(c =>
+    {
+        c.IsolationLevel = IsolationLevel.RepeatableRead;
+        c.QueryTimeout = TimeSpan.FromSeconds(5);
+        c.DuplicateDetectionWindow = TimeSpan.FromMinutes(5);
+        c.DisableInboxCleanupService();
+        c.UsePostgres();
+    });
     
-    configurator.AddSagaStateMachine<OrderStateMachine, OrderState>()
+    configurator.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderSagaDefinition))
         .EntityFrameworkRepository(r =>
         {
             r.ConcurrencyMode = ConcurrencyMode.Optimistic;
             r.IsolationLevel = IsolationLevel.RepeatableRead;
             r.ExistingDbContext<OrderSagaDbContext>();
+            r.UsePostgres();
         });
     
     configurator.UsingRabbitMq((context, factoryConfigurator) =>
@@ -58,7 +67,6 @@ builder.Services.AddMassTransit(configurator =>
     });
 });
 
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -67,13 +75,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-await using var scope = app.Services.CreateAsyncScope();
-
-// вынести в hosted service
-var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-var sagaDbContext = scope.ServiceProvider.GetRequiredService<OrderSagaDbContext>();
-await appDbContext.Database.MigrateAsync();
-await sagaDbContext.Database.MigrateAsync();
-
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    // вынести в hosted service
+    var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var sagaDbContext = scope.ServiceProvider.GetRequiredService<OrderSagaDbContext>();
+    await appDbContext.Database.MigrateAsync();
+    await sagaDbContext.Database.MigrateAsync();
+}
 app.MapControllers();
 app.Run();

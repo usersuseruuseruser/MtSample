@@ -24,12 +24,7 @@ public class CreateOrderConsumer: IConsumer<ICreateOrder>
         _logger.LogInformation("Creating a new order for item {ItemId} and client {ClientId}.", context.Message.ItemId, context.Message.ClientId);
 
         // типо чтото делаем
-        await Task.Delay(Random.Shared.Next(7899, 27599));
-        
-        if (Random.Shared.Next(0,2) != 0)
-        {
-            throw new Exception("Random exception during order creation");
-        }
+        await Task.Delay(Random.Shared.Next(2000, 5000));
         
         var order = new Order
         {
@@ -38,10 +33,16 @@ public class CreateOrderConsumer: IConsumer<ICreateOrder>
             CustomerId = context.Message.ClientId,
             Quantity = context.Message.Quantity,
             Status = new Status {OrderStatus = OrderStatus.Created},
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.Now.ToUniversalTime()
         };
         _dbContext.Orders.Add(order);
         await _dbContext.SaveChangesAsync();
+        
+        // специально выбрасываю после сохранения в бд, чтобы показать что сага сможет обработать эту ситуацию
+        if (Random.Shared.Next(0,2) != 0)
+        {
+            throw new Exception("Random exception during order creation");
+        }
         
         _logger.LogInformation("Order {OrderId} saved into database.", order.Id);
        

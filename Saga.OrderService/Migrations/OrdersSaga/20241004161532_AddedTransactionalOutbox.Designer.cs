@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Saga.OrderService.Database;
@@ -11,9 +12,11 @@ using Saga.OrderService.Database;
 namespace Saga.OrderService.Migrations.OrdersSaga
 {
     [DbContext(typeof(OrderSagaDbContext))]
-    partial class OrderSagaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241004161532_AddedTransactionalOutbox")]
+    partial class AddedTransactionalOutbox
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
