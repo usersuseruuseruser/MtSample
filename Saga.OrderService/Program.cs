@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Saga.OrderService.Database;
 using Saga.OrderService.Saga;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 
 Log.Logger = new LoggerConfiguration()
@@ -76,8 +77,8 @@ builder.Services.AddMassTransit(configurator =>
         factoryConfigurator.ConfigureEndpoints(context);
     });
 });
-
 var app = builder.Build();
+Log.Debug("Host started");
 
 if (app.Environment.IsDevelopment())
 {
