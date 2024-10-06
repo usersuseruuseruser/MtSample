@@ -48,7 +48,7 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
                     saga.BankPaymentCode = message.BankPaymentCode;
                 })
                 .TransitionTo(SagaCreated)
-                .Publish(context => new CreateOrder
+                .Publish(context => (ICreateOrder) new CreateOrder
                 {
                     OrderId = context.Saga.CorrelationId,
                     ItemId = context.Saga.ItemId,
@@ -74,7 +74,7 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
                 .TransitionTo(OrderCreated),
                 
                 When(OrderCreationFaultEvent)
-                .Publish(context => new CompensateOrderCreation()
+                .Publish(context => (ICompensateOrderCreation) new CompensateOrderCreation()
                 {
                     OrderId = context.Saga.OrderId
                 })
