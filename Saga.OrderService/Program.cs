@@ -1,14 +1,24 @@
 using System.Data;
 using System.Reflection;
-using System.Security.Cryptography.Xml;
 using MassTransit;
-using MassTransit.EntityFrameworkCoreIntegration;
 using Microsoft.EntityFrameworkCore;
 using Saga.OrderService.Database;
-using Saga.OrderService.Models;
 using Saga.OrderService.Saga;
+using Serilog;
+using Serilog.Events;
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateLogger();
+
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -48,7 +58,7 @@ builder.Services.AddMassTransit(configurator =>
     configurator.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderSagaDefinition))
         .EntityFrameworkRepository(r =>
         {
-            r.ConcurrencyMode = ConcurrencyMode.Optimistic;
+            r.ConcurrencyMode = ConcurrencyMode.Pessimistic;
             r.IsolationLevel = IsolationLevel.RepeatableRead;
             r.ExistingDbContext<OrderSagaDbContext>();
             r.UsePostgres();
