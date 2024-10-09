@@ -1,7 +1,8 @@
 using MassTransit;
 using Saga.Contracts.OrderRelated;
+using Saga.OrderService.Consumers.Models;
 using Saga.OrderService.Database;
-using Saga.OrderService.Models;
+using Saga.OrderService.Database.Models;
 
 namespace Saga.OrderService.Consumers;
 
@@ -24,14 +25,13 @@ public class CreateOrderCompensationConsumer: IConsumer<ICompensateOrderCreation
         if (order != null)
         {
             _dbContext.Remove(order);
-            await _dbContext.SaveChangesAsync();
-            _logger.LogInformation("Order {OrderId} removed from database.", order.Id);
         }
-        
-        await context.Publish<IOrderCreationCompensated>(new
+        await context.Publish((IOrderCreationCompensated) new OrderCreationCompensated()
         {
-            context.Message.OrderId,
-            CompensatedAt = DateTime.UtcNow
+            OrderId = context.Message.OrderId,
+            CompensatedAt = DateTime.Now.ToUniversalTime()
         });
+        await _dbContext.SaveChangesAsync();
+        _logger.LogInformation("Order {OrderId} removed from database.", order.Id);
     }
 }

@@ -33,4 +33,12 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Database\Migrations\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Saga.Contracts\Saga.Contracts.csproj" />
+    </ItemGroup>
+
 </Project>

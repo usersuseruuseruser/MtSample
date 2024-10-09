@@ -1,4 +1,4 @@
-namespace Saga.OrderService.Enums;
+namespace Saga.OrderService.Database.Models.Enums;
 
 public enum OrderStatus
 {

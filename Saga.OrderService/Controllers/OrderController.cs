@@ -1,11 +1,10 @@
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Saga.Contracts;
+using Saga.Contracts.OrderRelated;
 using Saga.OrderService.Consumers.Models;
 using Saga.OrderService.Database;
 using Saga.OrderService.Dto;
-using Saga.OrderService.Enums;
-using Saga.OrderService.Models;
 
 namespace Saga.OrderService.Controllers;
 
@@ -77,5 +76,17 @@ public class OrderController: ControllerBase
         }
         
         return Ok(data);
+    }
+
+    [HttpGet("/create-order-manually")]
+    public async Task<IActionResult> CreateOrderManually()
+    {
+        await _endpoint.Publish((ICreateOrder)new CreateOrder()
+        {
+            OrderId = NewId.NextGuid(),
+            ClientId = NewId.NextGuid()
+        });
+        
+        return Ok();
     }
 }

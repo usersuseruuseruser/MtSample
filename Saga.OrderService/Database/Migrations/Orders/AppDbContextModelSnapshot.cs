@@ -8,16 +8,16 @@ using Saga.OrderService.Database;
 
 #nullable disable
 
-namespace Saga.OrderService.Migrations.OrdersSaga
+namespace Saga.OrderService.Database.Migrations.Orders
 {
-    [DbContext(typeof(OrderSagaDbContext))]
-    partial class OrderSagaDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(AppDbContext))]
+    partial class AppDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("Sagas")
+                .HasDefaultSchema("Orders")
                 .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -69,7 +69,7 @@ namespace Saga.OrderService.Migrations.OrdersSaga
 
                     b.HasIndex("Delivered");
 
-                    b.ToTable("InboxState", "Sagas");
+                    b.ToTable("InboxState", "Orders");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
@@ -160,7 +160,7 @@ namespace Saga.OrderService.Migrations.OrdersSaga
                     b.HasIndex("InboxMessageId", "InboxConsumerId", "SequenceNumber")
                         .IsUnique();
 
-                    b.ToTable("OutboxMessage", "Sagas");
+                    b.ToTable("OutboxMessage", "Orders");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxState", b =>
@@ -190,84 +190,54 @@ namespace Saga.OrderService.Migrations.OrdersSaga
 
                     b.HasIndex("Created");
 
-                    b.ToTable("OutboxState", "Sagas");
+                    b.ToTable("OutboxState", "Orders");
                 });
 
-            modelBuilder.Entity("Saga.OrderService.Saga.OrderState", b =>
+            modelBuilder.Entity("Saga.OrderService.Database.Models.Order", b =>
                 {
-                    b.Property<Guid>("CorrelationId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("BankPaymentCode")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<Guid>("ClientId")
+                    b.Property<Guid>("CustomerId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("CurrentState")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<Guid>("ItemId")
+                    b.Property<Guid>("StatusId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("NotificationCompensatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.HasKey("Id");
 
-                    b.Property<DateTime?>("NotificationSentAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.HasIndex("StatusId");
 
-                    b.Property<DateTime?>("OrderCreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.ToTable("Orders", "Orders");
+                });
 
-                    b.Property<DateTime?>("OrderCreationCompensatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("OrderId")
+            modelBuilder.Entity("Saga.OrderService.Database.Models.Status", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("PaymentCompensatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("PaymentCompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Quantity")
+                    b.Property<int>("Current")
                         .HasColumnType("integer");
 
-                    b.Property<uint>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
+                    b.HasKey("Id");
 
-                    b.Property<DateTime?>("StockReservationCompensatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.ToTable("Status", "Orders");
+                });
 
-                    b.Property<DateTime?>("StockReservedAt")
-                        .HasColumnType("timestamp with time zone");
+            modelBuilder.Entity("Saga.OrderService.Database.Models.Order", b =>
+                {
+                    b.HasOne("Saga.OrderService.Database.Models.Status", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<string>("WarehouseId")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.HasKey("CorrelationId");
-
-                    b.ToTable("OrderStates", "Sagas");
+                    b.Navigation("Status");
                 });
 #pragma warning restore 612, 618
         }

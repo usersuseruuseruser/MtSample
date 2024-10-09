@@ -2,6 +2,8 @@ using System.Data;
 using System.Reflection;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Saga.OrderService.Consumers;
+using Saga.OrderService.Consumers.Definitions;
 using Saga.OrderService.Database;
 using Saga.OrderService.Saga;
 using Serilog;
@@ -9,10 +11,10 @@ using Serilog.Core;
 using Serilog.Events;
 
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Debug()
+    .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Information)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Information)
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .CreateLogger();
@@ -31,7 +33,7 @@ builder.Services.AddDbContext<AppDbContext>(optionsAction =>
         {
             o.MigrationsHistoryTable("__EFOrdersMigrationsHistory", "Orders");
             o.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName);
-        });
+        }).EnableSensitiveDataLogging().EnableDetailedErrors();
 });
 builder.Services.AddDbContext<OrderSagaDbContext>(builder =>
 {
@@ -41,19 +43,26 @@ builder.Services.AddDbContext<OrderSagaDbContext>(builder =>
         {
             o.MigrationsHistoryTable("__EFSagasMigrationsHistory", "Sagas");
             o.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName);
-        });
+        }).EnableSensitiveDataLogging().EnableDetailedErrors();
 });
 builder.Services.AddMassTransit(configurator =>
 {
     configurator.SetKebabCaseEndpointNameFormatter();
-    configurator.AddConsumers(Assembly.GetExecutingAssembly());
+    configurator.AddConsumer<CreateOrderCompensationConsumer,CreateOrderCompensationConsumerDefinition>();
+    configurator.AddConsumer<CreateOrderConsumer,CreateOrderConsumerDefinition>();
     configurator.AddEntityFrameworkOutbox<OrderSagaDbContext>(c =>
     {
         c.IsolationLevel = IsolationLevel.RepeatableRead;
-        c.QueryTimeout = TimeSpan.FromSeconds(5);
         c.DuplicateDetectionWindow = TimeSpan.FromMinutes(5);
         c.DisableInboxCleanupService();
-        c.UsePostgres();
+        c.UsePostgres(false);
+    });
+    configurator.AddEntityFrameworkOutbox<AppDbContext>(c =>
+    {
+        c.IsolationLevel = IsolationLevel.RepeatableRead;
+        c.DuplicateDetectionWindow = TimeSpan.FromMinutes(5);
+        c.DisableInboxCleanupService();
+        c.UsePostgres(false);
     });
     
     configurator.AddSagaStateMachine<OrderStateMachine, OrderState>(typeof(OrderSagaDefinition))
@@ -67,6 +76,10 @@ builder.Services.AddMassTransit(configurator =>
     
     configurator.UsingRabbitMq((context, factoryConfigurator) =>
     {
+        factoryConfigurator.UseMessageRetry(c =>
+        {
+            c.None();
+        });
         factoryConfigurator.Host("rabbitmq", "/", h =>
         {
             h.Username("admin");
@@ -78,7 +91,6 @@ builder.Services.AddMassTransit(configurator =>
     });
 });
 var app = builder.Build();
-Log.Debug("Host started");
 
 if (app.Environment.IsDevelopment())
 {

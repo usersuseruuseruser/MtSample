@@ -1,6 +1,0 @@
-@Saga.DeliveryService_HostAddress = http://localhost:5122
-
-GET {{Saga.DeliveryService_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

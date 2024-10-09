@@ -9,7 +9,7 @@ public class OrderDto
     public string Address { get; set; } = null!;
     public string Email { get; set; } = null!;
     // с какого склада выбрал товар
-    public string WarehouseId { get; set; } = null!;
+    public Guid WarehouseId { get; set; }
     // код оплаты. в самом конце мы используем его чтобы получиь деньги от банка пользователя
     public string BankPaymentCode { get; set; } = null!;
 }

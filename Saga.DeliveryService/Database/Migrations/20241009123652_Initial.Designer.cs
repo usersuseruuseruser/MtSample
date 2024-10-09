@@ -5,22 +5,21 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Saga.OrderService.Database;
+using Saga.DeliveryService.Database;
 
 #nullable disable
 
-namespace Saga.OrderService.Migrations.OrdersSaga
+namespace Saga.DeliveryService.Database.Migrations
 {
-    [DbContext(typeof(OrderSagaDbContext))]
-    [Migration("20241004161532_AddedTransactionalOutbox")]
-    partial class AddedTransactionalOutbox
+    [DbContext(typeof(AppDbContext))]
+    [Migration("20241009123652_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("Sagas")
                 .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -72,7 +71,7 @@ namespace Saga.OrderService.Migrations.OrdersSaga
 
                     b.HasIndex("Delivered");
 
-                    b.ToTable("InboxState", "Sagas");
+                    b.ToTable("InboxState");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxMessage", b =>
@@ -163,7 +162,7 @@ namespace Saga.OrderService.Migrations.OrdersSaga
                     b.HasIndex("InboxMessageId", "InboxConsumerId", "SequenceNumber")
                         .IsUnique();
 
-                    b.ToTable("OutboxMessage", "Sagas");
+                    b.ToTable("OutboxMessage");
                 });
 
             modelBuilder.Entity("MassTransit.EntityFrameworkCoreIntegration.OutboxState", b =>
@@ -193,84 +192,77 @@ namespace Saga.OrderService.Migrations.OrdersSaga
 
                     b.HasIndex("Created");
 
-                    b.ToTable("OutboxState", "Sagas");
+                    b.ToTable("OutboxState");
                 });
 
-            modelBuilder.Entity("Saga.OrderService.Saga.OrderState", b =>
+            modelBuilder.Entity("Saga.DeliveryService.Database.Models.Delivery", b =>
                 {
-                    b.Property<Guid>("CorrelationId")
+                    b.Property<Guid>("OrderId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
-                    b.Property<string>("BankPaymentCode")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<Guid>("ClientId")
+                    b.Property<Guid>("WarehouseId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("CurrentState")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                    b.HasKey("OrderId");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                    b.ToTable("Deliveries");
+                });
+
+            modelBuilder.Entity("Saga.DeliveryService.Database.Models.Status", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Current")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Statuses");
+                });
+
+            modelBuilder.Entity("Saga.DeliveryService.Database.Models.Stock", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("ItemId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("NotificationCompensatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("NotificationSentAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("OrderCreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("OrderCreationCompensatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("PaymentCompensatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("PaymentCompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
-                    b.Property<uint>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("xid")
-                        .HasColumnName("xmin");
+                    b.Property<Guid>("WarehouseId")
+                        .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("StockReservationCompensatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.HasKey("Id");
 
-                    b.Property<DateTime?>("StockReservedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.ToTable("Stocks");
+                });
 
-                    b.Property<string>("WarehouseId")
+            modelBuilder.Entity("Saga.DeliveryService.Database.Models.Warehouse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Address")
                         .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("text");
 
-                    b.HasKey("CorrelationId");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.ToTable("OrderStates", "Sagas");
+                    b.HasKey("Id");
+
+                    b.ToTable("Warehouses");
                 });
 #pragma warning restore 612, 618
         }

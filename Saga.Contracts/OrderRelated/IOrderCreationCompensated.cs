@@ -2,6 +2,6 @@ namespace Saga.Contracts.OrderRelated;
 
 public interface IOrderCreationCompensated
 {
-    public Guid OrderId { get; }
-    public DateTime CompensatedAt { get; }
+    public Guid OrderId { get; set; }
+    public DateTime CompensatedAt { get; set; }
 }

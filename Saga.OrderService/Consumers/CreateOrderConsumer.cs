@@ -3,8 +3,8 @@ using Saga.Contracts;
 using Saga.Contracts.OrderRelated;
 using Saga.OrderService.Consumers.Models;
 using Saga.OrderService.Database;
-using Saga.OrderService.Enums;
-using Saga.OrderService.Models;
+using Saga.OrderService.Database.Models;
+using Saga.OrderService.Database.Models.Enums;
 
 namespace Saga.OrderService.Consumers;
 
@@ -21,38 +21,25 @@ public class CreateOrderConsumer: IConsumer<ICreateOrder>
 
     public async Task Consume(ConsumeContext<ICreateOrder> context)
     {
-        _logger.LogInformation("Creating a new order for item {ItemId} and client {ClientId}.", context.Message.ItemId, context.Message.ClientId);
-
+        _logger.LogInformation("Creating a new order for client {ClientId} with order id {OrderId}",  context.Message.ClientId, context.Message.OrderId);
         // типо чтото делаем
         await Task.Delay(Random.Shared.Next(2000, 5000));
         
         var order = new Order
         {
             Id = context.Message.OrderId,
-            ItemId = context.Message.ItemId,
             CustomerId = context.Message.ClientId,
-            Quantity = context.Message.Quantity,
-            Status = new Status {OrderStatus = OrderStatus.Created},
+            Status = new Status {Current = OrderStatus.Created},
             CreatedAt = DateTime.Now.ToUniversalTime()
         };
         _dbContext.Orders.Add(order);
-        await _dbContext.SaveChangesAsync();
         
-        // специально выбрасываю после сохранения в бд, чтобы показать что сага сможет обработать эту ситуацию
-        if (Random.Shared.Next(0,2) != 0)
+        await context.Publish((IOrderCreated) new OrderCreated()
         {
-            throw new Exception("Random exception during order creation");
-        }
-        
-        _logger.LogInformation("Order {OrderId} saved into database.", order.Id);
-       
-        
-        await context.Publish<IOrderCreated>(new OrderCreated()
-        {
-            ItemId = order.ItemId,
-            OrderId = order.Id,
-            Quantity = order.Quantity,
             CreatedAt = order.CreatedAt
         });
+        await _dbContext.SaveChangesAsync();
+        
+        _logger.LogInformation("Order {OrderId} saved into database.", order.Id);
     }
 }
