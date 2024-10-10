@@ -12,7 +12,7 @@ using Saga.DeliveryService.Database;
 namespace Saga.DeliveryService.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241009123652_Initial")]
+    [Migration("20241010074046_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -200,6 +200,16 @@ namespace Saga.DeliveryService.Database.Migrations
                     b.Property<Guid>("OrderId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

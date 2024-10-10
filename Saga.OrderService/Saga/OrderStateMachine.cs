@@ -21,7 +21,7 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
     public Event<IOrderCreationCompensated> OrderCreationCompensationEvent { get; set; } = null!;
     
     public Event<DeliveryPlanned> DeliveryPlannedEvent { get; set; } = null!;
-    public Event<Fault<DeliveryPlanned>> DeliveryPlanningFaultEvent { get; set; } = null!;
+    public Event<Fault<PlanDelivery>> DeliveryPlanningFaultEvent { get; set; } = null!;
     public Event<DeliveryPlanningCompensated> DeliveryPlanningCompensatedEvent { get; set; } = null!;
     
 
@@ -141,7 +141,7 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
                     Logger.LogInformation("Delivery planning fault compensated for order {OrderId}.",
                         context.Saga.OrderId);
                 })
-                .Publish(context => new CompensateOrderCreation {OrderId = context.Saga.OrderId})
+                .Publish(context => (ICompensateOrderCreation) new CompensateOrderCreation {OrderId = context.Saga.OrderId})
                 // ошибки в создании заказа не было, но если была ошибка в планировке доставки, можно
                 // считать что созданный заказ был создан ошибочно и его нужно удалить - это и есть суть транзакции
                 .TransitionTo(OrderCreationFault)

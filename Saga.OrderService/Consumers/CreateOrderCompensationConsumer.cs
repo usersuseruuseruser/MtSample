@@ -25,13 +25,13 @@ public class CreateOrderCompensationConsumer: IConsumer<ICompensateOrderCreation
         if (order != null)
         {
             _dbContext.Remove(order);
+            await _dbContext.SaveChangesAsync();
         }
         await context.Publish((IOrderCreationCompensated) new OrderCreationCompensated()
         {
             OrderId = context.Message.OrderId,
             CompensatedAt = DateTime.Now.ToUniversalTime()
         });
-        await _dbContext.SaveChangesAsync();
-        _logger.LogInformation("Order {OrderId} removed from database.", order.Id);
+        _logger.LogInformation("Order {OrderId} removed from database.", context.Message.OrderId);
     }
 }

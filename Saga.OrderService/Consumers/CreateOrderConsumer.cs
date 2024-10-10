@@ -36,6 +36,7 @@ public class CreateOrderConsumer: IConsumer<ICreateOrder>
         
         await context.Publish((IOrderCreated) new OrderCreated()
         {
+            OrderId = order.Id,
             CreatedAt = order.CreatedAt
         });
         await _dbContext.SaveChangesAsync();

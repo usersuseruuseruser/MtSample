@@ -14,7 +14,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(b =>
 {
-    b.UseNpgsql("Host=Saga.DeliveryDb;Database=delivery;Username=postgres;Password=postgres;Port=5432",
+    b.UseNpgsql("Host=Saga.DeliveryDb;Database=delivery;Username=postgres;Password=postgres",
         o =>
         {
             o.MigrationsHistoryTable("__EFDeliveryMigrationsHistory");

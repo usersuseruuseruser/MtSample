@@ -21,17 +21,18 @@ public class DeliveryPlanningCompensationConsumer: IConsumer<CompensateDeliveryP
         _logger.LogInformation("Delivery planning compensation started for order {OrderId}", context.Message.OrderId);
         
         var message = context.Message;
-        var delivery = await _dbContext.Deliveries.Where(d => d.OrderId == message.OrderId).FirstAsync();
-        
-        var stock = await _dbContext.Stocks.Where(s => s.WarehouseId == delivery.WarehouseId && s.ItemId == delivery.ItemId).FirstAsync();
-        stock.Quantity += delivery.Quantity;
-        _dbContext.Deliveries.Remove(delivery);
-
-        await context.Publish<DeliveryPlanningCompensated>(new
+        var delivery = await _dbContext.Deliveries.Where(d => d.OrderId == message.OrderId).FirstOrDefaultAsync();
+        if (delivery != null)
         {
-            OrderId = message.OrderId
-        });
+            _dbContext.Deliveries.Remove(delivery);
+            // так как пример учебный, то товаров у нас нет в стоке... логика как ниже должна быть
+            // var stock = await _dbContext.Stocks.Where(s => s.WarehouseId == delivery.WarehouseId && s.ItemId == delivery.ItemId).FirstAsync();
+            // if (stock != null)
+            // stock.Quantity += delivery.Quantity;
+            await _dbContext.SaveChangesAsync();
+        }
         
+        await context.Publish(new DeliveryPlanningCompensated(message.OrderId, DateTime.UtcNow));
         await _dbContext.SaveChangesAsync();
         
         _logger.LogInformation($"Delivery planning compensation for order {message.OrderId} completed");

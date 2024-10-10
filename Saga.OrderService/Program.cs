@@ -11,10 +11,10 @@ using Serilog.Core;
 using Serilog.Events;
 
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
+    .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Information)
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Information)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .WriteTo.Console()
     .CreateLogger();
@@ -50,6 +50,9 @@ builder.Services.AddMassTransit(configurator =>
     configurator.SetKebabCaseEndpointNameFormatter();
     configurator.AddConsumer<CreateOrderCompensationConsumer,CreateOrderCompensationConsumerDefinition>();
     configurator.AddConsumer<CreateOrderConsumer,CreateOrderConsumerDefinition>();
+    // короч походу не надо использовать несколько outbox с разными схемами, mass transit это плохо поддерживает
+    // я не понимаю почему если я пишу UsePostgres(false) все работает
+    // (в описании просто написано использовать когда несколько схем) а в документации НИЧЕГО про это
     configurator.AddEntityFrameworkOutbox<OrderSagaDbContext>(c =>
     {
         c.IsolationLevel = IsolationLevel.RepeatableRead;

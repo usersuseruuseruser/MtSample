@@ -22,15 +22,19 @@ public class DeliveryPlanningConsumer: IConsumer<PlanDelivery>
     public async Task Consume(ConsumeContext<PlanDelivery> context)
     {
         _logger.LogInformation("Planning delivery for order {OrderId}", context.Message.OrderId);
-        // check if product is available in the warehouse and reserve it
         var message = context.Message;
         
-        var stock = await _dbContext.Stocks.Where(s => s.WarehouseId == message.WarehouseId && s.ItemId == message.ItemId).FirstAsync();
-        if (stock.Quantity < message.Quantity)
+        // так как тут пример учебный, то и товаров в таблице нет, поэтому просто сделаем 50 на 50 что есть
+        // var stock = await _dbContext.Stocks.Where(s => s.WarehouseId == message.WarehouseId && s.ItemId == message.ItemId).FirstAsync();
+        // if (stock.Quantity < message.Quantity)
+        // {
+        //     throw new NotEnoughItemsInStockException(message.OrderId, message.ItemId, message.Quantity);
+        // }
+        // stock.Quantity -= message.Quantity;
+        if (Random.Shared.Next(0,2) == 0)
         {
             throw new NotEnoughItemsInStockException(message.OrderId, message.ItemId, message.Quantity);
         }
-        stock.Quantity -= message.Quantity;
         
         var delivery = new Delivery()
         {
@@ -42,6 +46,7 @@ public class DeliveryPlanningConsumer: IConsumer<PlanDelivery>
             Address = message.Address
         };
         _dbContext.Deliveries.Add(delivery);
+        await context.Publish(new DeliveryPlanned(delivery.OrderId, DateTime.UtcNow));
         await _dbContext.SaveChangesAsync();
         
         _logger.LogInformation("Delivery for order {OrderId} planned", context.Message.OrderId);
