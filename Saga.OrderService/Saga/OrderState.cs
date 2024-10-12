@@ -24,8 +24,6 @@ public class OrderState: SagaStateMachineInstance
     public DateTime? DeliveryPlanningCompensatedAt { get; set; }
     public DateTime? PaymentCompletedAt { get; set; }
     public DateTime? PaymentCompensatedAt { get; set; }
-    public DateTime? NotificationSentAt { get; set; }
-    public DateTime? NotificationCompensatedAt { get; set; }
     // generally it's like this public byte[] RowVersion { get; set; } but postgres has hidden row version column
     public uint RowVersion { get; set; }
 }

@@ -233,12 +233,6 @@ namespace Saga.OrderService.Database.Migrations.OrdersSaga
                     b.Property<string>("LastErrorMessage")
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("NotificationCompensatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("NotificationSentAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<DateTime?>("OrderCreatedAt")
                         .HasColumnType("timestamp with time zone");
 

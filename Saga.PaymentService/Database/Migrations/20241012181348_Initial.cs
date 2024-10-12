@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Saga.DeliveryService.Database.Migrations
+namespace Saga.PaymentService.Database.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration
@@ -12,22 +12,6 @@ namespace Saga.DeliveryService.Database.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "Deliveries",
-                columns: table => new
-                {
-                    OrderId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ItemId = table.Column<Guid>(type: "uuid", nullable: false),
-                    WarehouseId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Address = table.Column<string>(type: "text", nullable: false),
-                    Quantity = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Deliveries", x => x.OrderId);
-                });
-
             migrationBuilder.CreateTable(
                 name: "InboxState",
                 columns: table => new
@@ -100,42 +84,16 @@ namespace Saga.DeliveryService.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Statuses",
+                name: "PaidOrders",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Current = table.Column<int>(type: "integer", nullable: false)
+                    OrderId = table.Column<Guid>(type: "uuid", nullable: false),
+                    BankPaymentCode = table.Column<string>(type: "text", nullable: false),
+                    PaymentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Statuses", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Stocks",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ItemId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Quantity = table.Column<int>(type: "integer", nullable: false),
-                    WarehouseId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Stocks", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Warehouses",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Address = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Warehouses", x => x.Id);
+                    table.PrimaryKey("PK_PaidOrders", x => x.OrderId);
                 });
 
             migrationBuilder.CreateIndex(
@@ -175,9 +133,6 @@ namespace Saga.DeliveryService.Database.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Deliveries");
-
-            migrationBuilder.DropTable(
                 name: "InboxState");
 
             migrationBuilder.DropTable(
@@ -187,13 +142,7 @@ namespace Saga.DeliveryService.Database.Migrations
                 name: "OutboxState");
 
             migrationBuilder.DropTable(
-                name: "Statuses");
-
-            migrationBuilder.DropTable(
-                name: "Stocks");
-
-            migrationBuilder.DropTable(
-                name: "Warehouses");
+                name: "PaidOrders");
         }
     }
 }

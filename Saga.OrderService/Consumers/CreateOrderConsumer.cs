@@ -22,8 +22,6 @@ public class CreateOrderConsumer: IConsumer<ICreateOrder>
     public async Task Consume(ConsumeContext<ICreateOrder> context)
     {
         _logger.LogInformation("Creating a new order for client {ClientId} with order id {OrderId}",  context.Message.ClientId, context.Message.OrderId);
-        // типо чтото делаем
-        await Task.Delay(Random.Shared.Next(2000, 5000));
         
         var order = new Order
         {
@@ -39,6 +37,12 @@ public class CreateOrderConsumer: IConsumer<ICreateOrder>
             OrderId = order.Id,
             CreatedAt = order.CreatedAt
         });
+
+        if (Random.Shared.Next(0,2) == 0)
+        {
+            throw new Exception("Random exception during order creation");
+        }
+        
         await _dbContext.SaveChangesAsync();
         
         _logger.LogInformation("Order {OrderId} saved into database.", order.Id);

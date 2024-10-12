@@ -42,7 +42,7 @@ public class DeliveryPlanningConsumer: IConsumer<PlanDelivery>
             Quantity = message.Quantity,
             OrderId = context.Message.OrderId,
             WarehouseId = context.Message.WarehouseId,
-            Status = DeliveryStatus.Created,
+            Status = new Status(){Current = DeliveryStatus.Created},
             Address = message.Address
         };
         _dbContext.Deliveries.Add(delivery);

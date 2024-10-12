@@ -1,3 +1,4 @@
+using System.Text;
 using Contracts;
 using MassTransit;
 using SimpleConsumerProducer.Consumer.DbContext;
@@ -28,7 +29,7 @@ public class OrderWithEmailConsumer
             Subject = "Order details",
             Body = context.Message.OrderDetails
         });
-        await context.Publish(new CasualOrder(){Order = "test"});
+        await context.Publish(new QueueNotFound());
         await _dbContext.SaveChangesAsync();
 
         _logger.LogInformation("Email sent to {Email}", context.Message.Email);

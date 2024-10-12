@@ -2,6 +2,7 @@ using MassTransit;
 using Saga.Contracts;
 using Saga.Contracts.DeliveryRelated;
 using Saga.Contracts.OrderRelated;
+using Saga.Contracts.PaymentRelated;
 using Saga.OrderService.Consumers.Models;
 
 namespace Saga.OrderService.Saga;
@@ -14,6 +15,9 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
     public State OrderCreationFault { get; set; } = null!;
     public State DeliveryPlanned { get; set; } = null!;
     public State DeliveryPlanningFault { get; set; } = null!;
+    // пока что это финальная стадия, сага Finalize'ируется так что не используется
+    public State OrderPaid { get; set; } = null!;
+    public State OrderPaymentFault { get; set; } = null!;
     public Event<IStartOrderSaga> OrderSagaCreationEvent { get; set; } = null!;
     
     public Event<IOrderCreated> OrderCreatedEvent { get; set; } = null!;
@@ -23,7 +27,9 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
     public Event<DeliveryPlanned> DeliveryPlannedEvent { get; set; } = null!;
     public Event<Fault<PlanDelivery>> DeliveryPlanningFaultEvent { get; set; } = null!;
     public Event<DeliveryPlanningCompensated> DeliveryPlanningCompensatedEvent { get; set; } = null!;
-    
+    public Event<OrderPaymentSucceeded> OrderPaymentSucceededEvent { get; set; } = null!;
+    public Event<Fault<StartOrderPayment>> OrderPaymentFaultEvent { get; set; } = null!;
+    public Event<OrderPaymentCompensated> OrderPaymentCompensatedEvent { get; set; } = null!;
 
     public OrderStateMachine(ILogger<OrderStateMachine> logger)
     {
@@ -43,6 +49,12 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
         Event(() => DeliveryPlanningFaultEvent, x =>
             x.CorrelateById(context => context.Message.Message.OrderId));
         Event(() => DeliveryPlanningCompensatedEvent, x =>
+            x.CorrelateById(context => context.Message.OrderId));
+        Event(() => OrderPaymentSucceededEvent, x =>
+            x.CorrelateById(context => context.Message.OrderId));
+        Event(() => OrderPaymentFaultEvent, x =>
+            x.CorrelateById(context => context.Message.Message.OrderId));
+        Event(() => OrderPaymentCompensatedEvent, x =>
             x.CorrelateById(context => context.Message.OrderId));
         Initially(
             When(OrderSagaCreationEvent)
@@ -101,6 +113,7 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
                 })
                 .Then(context =>
                 {
+                    context.Saga.LastErrorMessage = context.Message.Exceptions.First().Message;
                     Logger.LogInformation("Order {OrderId} creation fault, compensation event published.",
                         context.Saga.OrderId);
                 })
@@ -122,12 +135,14 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
                     context.Saga.DeliveryPlannedAt = context.Message.PlannedAt;
                     Logger.LogInformation("Delivery planned for order {OrderId}.", context.Saga.OrderId);
                 })
+                .Publish(context => new StartOrderPayment(context.Saga.OrderId, context.Saga.BankPaymentCode))
                 .TransitionTo(DeliveryPlanned),
             
             When(DeliveryPlanningFaultEvent)
                 .Publish(context => new CompensateDeliveryPlanning(context.Saga.OrderId))
                 .Then(context =>
                 {
+                    context.Saga.LastErrorMessage = context.Message.Exceptions.First().Message;
                     Logger.LogInformation("Delivery planning fault for order {OrderId}, compensation event published.",
                         context.Saga.OrderId);
                 })
@@ -145,6 +160,35 @@ public class OrderStateMachine: MassTransitStateMachine<OrderState>
                 // ошибки в создании заказа не было, но если была ошибка в планировке доставки, можно
                 // считать что созданный заказ был создан ошибочно и его нужно удалить - это и есть суть транзакции
                 .TransitionTo(OrderCreationFault)
+            );
+        During(DeliveryPlanned,
+            When(OrderPaymentSucceededEvent)
+                .Then(context =>
+                {
+                    context.Saga.PaymentCompletedAt = context.Message.SucceededAt;
+                    Logger.LogInformation("Order {OrderId} paid.", context.Saga.OrderId);
+                })
+                .Finalize(),
+            
+            When(OrderPaymentFaultEvent)
+                .Publish(context => new CompensateOrderPayment(context.Saga.OrderId))
+                .Then(context =>
+                {
+                    context.Saga.LastErrorMessage = context.Message.Exceptions.First().Message;
+                    Logger.LogInformation("Order {OrderId} payment fault, compensation event published.",
+                        context.Saga.OrderId);
+                })
+                .TransitionTo(OrderPaymentFault)
+            );
+        During(OrderPaymentFault,
+            When(OrderPaymentCompensatedEvent)
+                .Then(context =>
+                {
+                    context.Saga.PaymentCompensatedAt = context.Message.CompensatedAt;
+                    Logger.LogInformation("Order {OrderId} payment fault compensated.", context.Saga.OrderId);
+                })
+                .Publish(context => new CompensateDeliveryPlanning(context.Saga.OrderId))
+                .TransitionTo(DeliveryPlanningFault)
             );
     }
     

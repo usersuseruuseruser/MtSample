@@ -9,5 +9,5 @@ public class Delivery
     public Guid WarehouseId { set; get; }
     public string Address { get; set; } = null!;
     public int Quantity { get; set; }
-    public DeliveryStatus Status { get; set; }
+    public Status Status { get; set; }
 }

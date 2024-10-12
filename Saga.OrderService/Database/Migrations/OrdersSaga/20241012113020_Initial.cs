@@ -61,8 +61,6 @@ namespace Saga.OrderService.Database.Migrations.OrdersSaga
                     DeliveryPlanningCompensatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     PaymentCompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     PaymentCompensatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    NotificationSentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    NotificationCompensatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false)
                 },
                 constraints: table =>

@@ -11,7 +11,7 @@
 #        condition: service_healthy
 #      PgConsumer:
 #        condition: service_healthy
-#        
+#
 #  producer:
 #    build: 
 #        context: .
@@ -24,8 +24,8 @@
 #            condition: service_healthy
 #        PgProducer:
 #            condition: service_healthy
-#            
-#      
+#
+#
 #  PgProducer:
 #    image: postgres:latest
 #    environment:
@@ -41,7 +41,7 @@
 #      interval: 5s
 #      timeout: 5s
 #      retries: 3
-#  
+#
 #  PgConsumer:
 #    image: postgres:latest
 #    environment:
@@ -73,7 +73,7 @@
       interval: 5s
       timeout: 5s
       retries: 3
-  
+
   Saga.OrderService:
     build: 
       context: .
@@ -86,7 +86,7 @@
             condition: service_healthy
         Saga.OrderSaga:
             condition: service_healthy
-    
+
   Saga.DeliveryService:
     build:
       context: .
@@ -99,31 +99,21 @@
         condition: service_healthy
       Saga.DeliveryDb:
         condition: service_healthy
-  
-#  Saga.PaymentService:
-#    build:
-#      context: .
-#      dockerfile: Saga.DeliveryService/Dockerfile
-#    ports:
-#      - "8084:8080"
-#      - "8085:8081"
-#    depends_on:
-#      rabbitmq:
-#        condition: service_healthy
-#      Saga.PaymentDb:
-#        condition: service_healthy  
-#  
-#  Saga.NotificationService:
-#    build:
-#      context: .
-#      dockerfile: Saga.DeliveryService/Dockerfile
-#    ports:
-#      - "8084:8080"
-#      - "8085:8081"
-#    depends_on:
-#      rabbitmq:
-#        condition: service_healthy
-  
+
+  Saga.PaymentService:
+    build:
+      context: .
+      dockerfile: Saga.PaymentService/Dockerfile
+    ports:
+      - "8084:8080"
+      - "8085:8081"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      Saga.PaymentDb:
+        condition: service_healthy  
+
+
   Saga.OrderSaga:
     image: postgres:latest
     environment:
@@ -154,24 +144,25 @@
       interval: 4s
       timeout: 5s
       retries: 3
-#  Saga.PaymentDb:
-#    image: postgres:latest
-#    environment:
-#      POSTGRES_USER: postgres
-#      POSTGRES_PASSWORD: postgres
-#      POSTGRES_DB: payment
-#    volumes:
-#      - payment:/var/lib/postgresql/data
-#    ports:
-#      - "5437:5432"
-#    healthcheck:
-#      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-#      interval: 4s
-#      timeout: 5s
-#      retries: 3
+  Saga.PaymentDb:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: payment
+    volumes:
+      - payment:/var/lib/postgresql/data
+    ports:
+      - "5437:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 4s
+      timeout: 5s
+      retries: 3
 volumes: 
     rabbitmq:
     pgproducer:
     pgconsumer:
     ordersaga:
+    payment:
     delivery:

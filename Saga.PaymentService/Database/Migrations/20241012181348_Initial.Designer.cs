@@ -5,14 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Saga.DeliveryService.Database;
+using Saga.PaymentService.Database;
 
 #nullable disable
 
-namespace Saga.DeliveryService.Database.Migrations
+namespace Saga.PaymentService.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241010074046_Initial")]
+    [Migration("20241012181348_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -195,84 +195,22 @@ namespace Saga.DeliveryService.Database.Migrations
                     b.ToTable("OutboxState");
                 });
 
-            modelBuilder.Entity("Saga.DeliveryService.Database.Models.Delivery", b =>
+            modelBuilder.Entity("Saga.PaymentService.Database.Models.PaidOrder", b =>
                 {
                     b.Property<Guid>("OrderId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Address")
+                    b.Property<string>("BankPaymentCode")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("ItemId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("WarehouseId")
-                        .HasColumnType("uuid");
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("OrderId");
 
-                    b.ToTable("Deliveries");
-                });
-
-            modelBuilder.Entity("Saga.DeliveryService.Database.Models.Status", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Current")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Statuses");
-                });
-
-            modelBuilder.Entity("Saga.DeliveryService.Database.Models.Stock", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("ItemId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("WarehouseId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Stocks");
-                });
-
-            modelBuilder.Entity("Saga.DeliveryService.Database.Models.Warehouse", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Warehouses");
+                    b.ToTable("PaidOrders");
                 });
 #pragma warning restore 612, 618
         }

@@ -72,6 +72,10 @@ builder.Services.AddMassTransit(configurator =>
             
             h.Heartbeat(TimeSpan.FromSeconds(500));
         });
+        factoryConfigurator.UseMessageRetry(c =>
+        {
+            c.None();
+        });
         factoryConfigurator.ConfigureEndpoints(context);
     });
 });

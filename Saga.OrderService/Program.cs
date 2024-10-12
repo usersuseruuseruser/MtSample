@@ -50,6 +50,7 @@ builder.Services.AddMassTransit(configurator =>
     configurator.SetKebabCaseEndpointNameFormatter();
     configurator.AddConsumer<CreateOrderCompensationConsumer,CreateOrderCompensationConsumerDefinition>();
     configurator.AddConsumer<CreateOrderConsumer,CreateOrderConsumerDefinition>();
+    configurator.AddConsumer<OrderPaidConsumer,OrderPaidConsumerDefinition>();
     // короч походу не надо использовать несколько outbox с разными схемами, mass transit это плохо поддерживает
     // я не понимаю почему если я пишу UsePostgres(false) все работает
     // (в описании просто написано использовать когда несколько схем) а в документации НИЧЕГО про это
